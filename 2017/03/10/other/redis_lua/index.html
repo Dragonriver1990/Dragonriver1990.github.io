@@ -1,0 +1,1054 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+<!--百度统计-->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?7d06d2f3d2e8c939151c6cebb201f87a";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+  <meta name="keywords" content="python,redis,lua" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/head.jpeg?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="学习背景 最近工作中遇到这样一个需求：就是用户每天对某个接口的调用次数不得超过一定的频次。 回想到之前看到的文章中有处理类似问题的场景：就是实现访问频率的限制，这类问题的使用场景特别多。  处理这类问题，使用Redis + Lua是一个非常正确的做法。 Redis + Lua介绍Lua嵌入Redis的优势: 123减少网络开销: 不使用 Lua 的代码需要向 Redis 发送多次请求, 而脚本只需">
+<meta name="keywords" content="python,redis,lua">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis应用之Lua脚本">
+<meta property="og:url" content="https://dragonriver1990.github.io/2017/03/10/other/redis_lua/index.html">
+<meta property="og:site_name" content="奔跑的江江">
+<meta property="og:description" content="学习背景 最近工作中遇到这样一个需求：就是用户每天对某个接口的调用次数不得超过一定的频次。 回想到之前看到的文章中有处理类似问题的场景：就是实现访问频率的限制，这类问题的使用场景特别多。  处理这类问题，使用Redis + Lua是一个非常正确的做法。 Redis + Lua介绍Lua嵌入Redis的优势: 123减少网络开销: 不使用 Lua 的代码需要向 Redis 发送多次请求, 而脚本只需">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://i4.buimg.com/567571/68a140f29145365a.png">
+<meta property="og:image" content="http://i4.buimg.com/567571/194650bb9d386b72.png">
+<meta property="og:updated_time" content="2017-09-28T06:38:17.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis应用之Lua脚本">
+<meta name="twitter:description" content="学习背景 最近工作中遇到这样一个需求：就是用户每天对某个接口的调用次数不得超过一定的频次。 回想到之前看到的文章中有处理类似问题的场景：就是实现访问频率的限制，这类问题的使用场景特别多。  处理这类问题，使用Redis + Lua是一个非常正确的做法。 Redis + Lua介绍Lua嵌入Redis的优势: 123减少网络开销: 不使用 Lua 的代码需要向 Redis 发送多次请求, 而脚本只需">
+<meta name="twitter:image" content="http://i4.buimg.com/567571/68a140f29145365a.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dragonriver1990.github.io/2017/03/10/other/redis_lua/"/>
+
+
+
+
+
+  <title> Redis应用之Lua脚本 | 奔跑的江江 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">奔跑的江江</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Come on!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocapitalize="off" autocomplete="off" autocorrect="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://dragonriver1990.github.io/2017/03/10/other/redis_lua/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DragonRiver">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="奔跑的江江">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Redis应用之Lua脚本
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-10T12:50:36+08:00">
+                2017-03-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Redis/" itemprop="url" rel="index">
+                    <span itemprop="name">Redis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a class="cloud-tie-join-count" href="/2017/03/10/other/redis_lua/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count join-count" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="学习背景"><a href="#学习背景" class="headerlink" title="学习背景"></a>学习背景</h3><blockquote>
+<p>最近工作中遇到这样一个需求：就是用户每天对某个接口的调用次数不得超过一定的频次。</p>
+<p>回想到之前看到的文章中有处理类似问题的场景：就是实现访问频率的限制，这类问题的使用场景特别多。</p>
+</blockquote>
+<p>处理这类问题，使用Redis + Lua是一个非常正确的做法。</p>
+<h3 id="Redis-Lua介绍"><a href="#Redis-Lua介绍" class="headerlink" title="Redis + Lua介绍"></a>Redis + Lua介绍</h3><p>Lua嵌入Redis的优势:</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="section">减少网络开销: 不使用 Lua 的代码需要向 Redis 发送多次请求, 而脚本只需一次即可, 减少网络传输</span></div><div class="line"><span class="section">原子操作: Redis 将整个脚本作为一个原子执行, 无需担心并发, 也就无需事务</span></div><div class="line"><span class="section">复用: 脚本会永久保存 Redis 中, 其他客户端可继续使用</span></div></pre></td></tr></table></figure>
+<h4 id="基本概念及使用方法"><a href="#基本概念及使用方法" class="headerlink" title="基本概念及使用方法"></a>基本概念及使用方法</h4><p>Redis执行Lua脚本的基础知识，官网的文档介绍的很详细，这里不再赘述。通过如下两篇文章基本可以对Redis的概念和使用做到很好的了解。</p>
+<p><a href="http://redisbook.readthedocs.io/en/latest/feature/scripting.html" target="_blank" rel="external">Redis设计与实现—Lua脚本</a></p>
+<p><a href="http://redisdoc.com/script/eval.html" target="_blank" rel="external">Redis EVAL命令</a></p>
+<h4 id="Redis执行Lua脚本的过程"><a href="#Redis执行Lua脚本的过程" class="headerlink" title="Redis执行Lua脚本的过程"></a>Redis执行Lua脚本的过程</h4><p>这里重点对Redis服务执行Lua脚本的实现原理进行介绍一下。</p>
+<h5 id="创建Lua环境"><a href="#创建Lua环境" class="headerlink" title="创建Lua环境"></a>创建Lua环境</h5><figure class="highlight avrasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="symbol">A:</span>为了在 Redis 服务器中执行 Lua 脚本, Redis 内嵌了一个 Lua 环境, 并对该环境进行了一系列修改, 从而确保满足 Redis 的需要.</div><div class="line"><span class="symbol">B:</span>整个 Redis 服务器只需创建一个 Lua 环境.</div></pre></td></tr></table></figure>
+<h5 id="Lua环境协作组件"><a href="#Lua环境协作组件" class="headerlink" title="Lua环境协作组件"></a>Lua环境协作组件</h5><p>Redis创建两个用于与Lua环境协作的组件: <strong>伪客户端</strong>- 负责执行 Lua 脚本中的 Redis 命令, <code>lua_scripts</code><strong>字典</strong>- 保存 Lua 脚本。</p>
+<p><code>伪客户端</code>：执行Reids命令必须有对应的客户端状态, 因此执行 <strong>Lua 脚本内的 Redis 命令</strong>必须为 Lua 环境专门创建一个伪客户端, 由该客户端处理 Lua 内所有命令: <code>redis.call()</code>/<code>redis.pcall()</code>。</p>
+<p><code>lua_scritps</code>字典：字典key为脚本 <strong>SHA1</strong> 校验和, value为 <strong>SHA1</strong> 对应脚本内容, 所有被<code>EVAL</code>和<code>SCRIPT LOAD</code>载入过的脚本都被记录到 <code>lua_scripts</code> 中, 便于实现 <code>SCRIPT EXISTS</code> 命令和脚本复制功能。</p>
+<p><img src="http://i4.buimg.com/567571/68a140f29145365a.png" alt=""></p>
+<h5 id="Eval命令原理"><a href="#Eval命令原理" class="headerlink" title="Eval命令原理"></a>Eval命令原理</h5><p><code>EVAL</code>命令执行分为以下三个步骤：</p>
+<ol>
+<li><p>定义Lua函数:<br>在 Lua 环境内定义 <strong>Lua函数</strong> : 名为<code>f_</code>前缀+脚本 <strong>SHA1</strong> 校验和, 体为<strong>脚本内容本身</strong>. 优势:</p>
+<p>1、执行脚本步骤简单, 调用函数即可;</p>
+<p>2、函数的局部性可保持 Lua 环境清洁, 减少垃圾回收工作量, 且避免使用全局变量;</p>
+<p>3、只要记住 <strong>SHA1</strong> 校验和, 即可在不知脚本内容的情况下, 直接调用 Lua 函数执行脚本(<code>EVALSHA</code>命令实现).</p>
+</li>
+<li><p>将脚本保存到<code>lua_scripts</code>字典;</p>
+</li>
+<li><p>执行脚本函数: </p>
+<p>1、将 <a href="http://redis.readthedocs.org/en/latest/script/eval.html#eval" target="_blank" rel="external">EVAL</a> 命令中输入的 <code>KEYS</code> 参数和 <code>ARGV</code> 参数以全局数组的方式传入到 Lua 环境中。</p>
+<p>2、设置伪客户端的目标数据库为调用者客户端的目标数据库： <code>fake_client-&gt;db = caller_client-&gt;db</code> ，确保脚本中执行的 Redis 命令访问的是正确的数据库。</p>
+<p>3、为 Lua 环境装载超时钩子，保证在脚本执行出现超时时可以杀死脚本，或者停止 Redis 服务器。</p>
+<p>4、执行脚本对应的 Lua 函数。</p>
+<p>5、如果被执行的 Lua 脚本中带有 <code>SELECT</code> 命令，那么在脚本执行完毕之后，伪客户端中的数据库可能已经有所改变，所以需要对调用者客户端的目标数据库进行更新： <code>caller_client-&gt;db = fake_client-&gt;db</code> 。</p>
+<p>6、执行清理操作：清除钩子；清除指向调用者客户端的指针；等等。</p>
+<p>7、将 Lua 函数执行所得的结果转换成 Redis 回复，然后传给调用者客户端。</p>
+<p>8、对 Lua 环境进行一次单步的渐进式 GC 。</p>
+</li>
+</ol>
+<h5 id="数据流表示图"><a href="#数据流表示图" class="headerlink" title="数据流表示图"></a>数据流表示图</h5><p>执行命令 <code>EVAL &quot;return redis.call(&#39;DBSIZE&#39;)&quot; 0</code> 时，调用者客户端（caller）、伪客户端（fake client）、Redis 服务器和 Lua 环境之间的数据流表示图：</p>
+<p><img src="http://i4.buimg.com/567571/194650bb9d386b72.png" alt=""></p>
+<h3 id="Redis-Lua-应用"><a href="#Redis-Lua-应用" class="headerlink" title="Redis + Lua 应用"></a>Redis + Lua 应用</h3><p>这里主要就是结合Python开发环境，针对指定时间内IP请求频次限制做一个示例讲解。Python的Redis客户端实现执行Lua脚本的相关功能。客户端执行Lua脚本的源码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Script</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="string">"An executable Lua script object returned by ``register_script``"</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, registered_client, script)</span>:</span></div><div class="line">        self.registered_client = registered_client</div><div class="line">        self.script = script</div><div class="line">        self.sha = <span class="string">''</span></div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, keys=[], args=[], client=None)</span>:</span></div><div class="line">        <span class="string">"Execute the script, passing any required ``args``"</span></div><div class="line">        <span class="keyword">if</span> client <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">            client = self.registered_client</div><div class="line">        args = tuple(keys) + tuple(args)</div><div class="line">        <span class="comment"># make sure the Redis server knows about the script</span></div><div class="line">        <span class="keyword">if</span> isinstance(client, BasePipeline):</div><div class="line">            <span class="comment"># make sure this script is good to go on pipeline</span></div><div class="line">            client.script_load_for_pipeline(self)</div><div class="line">        <span class="keyword">try</span>:</div><div class="line">            <span class="keyword">return</span> client.evalsha(self.sha, len(keys), *args)</div><div class="line">        <span class="keyword">except</span> NoScriptError:</div><div class="line">            <span class="comment"># Maybe the client is pointed to a differnet server than the client</span></div><div class="line">            <span class="comment"># that created this instance?</span></div><div class="line">            self.sha = client.script_load(self.script)</div><div class="line">            <span class="keyword">return</span> client.evalsha(self.sha, len(keys), *args)</div></pre></td></tr></table></figure>
+<p>Lua脚本实现的IP频次限制代码</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">--</span></div><div class="line"><span class="comment">-- Created by IntelliJ IDEA.</span></div><div class="line"><span class="comment">-- User: DragonRiver</span></div><div class="line"><span class="comment">-- Date: 17/03/11</span></div><div class="line"><span class="comment">-- Time: 下午6:11</span></div><div class="line"><span class="comment">--</span></div><div class="line"></div><div class="line"><span class="keyword">local</span> key = <span class="string">"rate:limit:"</span> .. KEYS[<span class="number">1</span>]</div><div class="line"><span class="keyword">local</span> limit = <span class="built_in">tonumber</span>(ARGV[<span class="number">1</span>])</div><div class="line"><span class="keyword">local</span> expire_time = ARGV[<span class="number">2</span>]</div><div class="line"><span class="comment">-- 首先判断键是否存在</span></div><div class="line"><span class="keyword">local</span> is_exists = redis.call(<span class="string">"EXISTS"</span>, key)</div><div class="line"><span class="comment">-- 键存在就加1</span></div><div class="line"><span class="keyword">if</span> is_exists == <span class="number">1</span> <span class="keyword">then</span></div><div class="line">    <span class="keyword">if</span> redis.call(<span class="string">"INCR"</span>, key) &gt; limit <span class="keyword">then</span></div><div class="line">        <span class="keyword">return</span> <span class="number">0</span></div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="keyword">return</span> <span class="number">1</span></div><div class="line">    <span class="keyword">end</span></div><div class="line"><span class="comment">-- 不存在的话，就设置键，同时设置有效期</span></div><div class="line"><span class="keyword">else</span></div><div class="line">    redis.call(<span class="string">"SET"</span>, key, <span class="number">1</span>)</div><div class="line">    redis.call(<span class="string">"EXPIRE"</span>, key, expire_time)</div><div class="line">    <span class="keyword">return</span> <span class="number">1</span></div></pre></td></tr></table></figure>
+<p>Python执行乱脚本helper</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> redis</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">LuaRedisHelper</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, redis_conf, lua_script_path)</span>:</span></div><div class="line">        self.redis_client = redis.StrictRedis(</div><div class="line">            host=redis_conf.get(<span class="string">"host"</span>, <span class="string">"localhost"</span>),</div><div class="line">            port=redis_conf.get(<span class="string">"port"</span>, <span class="number">6379</span>), db=<span class="number">0</span>)</div><div class="line">        self.lua_script = open(lua_script_path).read()</div><div class="line">        self.multiply = self.redis_client.register_script(self.lua_script)</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">multiply_excete</span><span class="params">(self, keys=list<span class="params">()</span>, args=list<span class="params">()</span>)</span>:</span></div><div class="line">        <span class="keyword">return</span> self.multiply(keys=keys, args=args)</div></pre></td></tr></table></figure>
+<p>实际应用</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/env python</span></div><div class="line"><span class="comment"># -*-coding:utf-8-*-</span></div><div class="line"></div><div class="line"><span class="string">"""</span></div><div class="line"><span class="string">    实现访问频率限制: 实现访问者 $ip 在一定的时间 $time 内只能访问 $limit 次.</span></div><div class="line"><span class="string">"""</span></div><div class="line"><span class="keyword">from</span> lua_script_helper <span class="keyword">import</span> LuaRedisHelper</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</div><div class="line">    redis_conf = &#123;&#125;</div><div class="line">    lua_redis_helper = LuaRedisHelper(</div><div class="line">        redis_conf=redis_conf, lua_script_path=<span class="string">"./ip_limit.lua"</span>)</div><div class="line">    keys, args = [<span class="string">"127.0.0.1"</span>], [<span class="string">"5"</span>, <span class="string">"10"</span>]</div><div class="line">    res = lua_redis_helper.multiply(keys, args)</div><div class="line">    <span class="keyword">print</span> res</div></pre></td></tr></table></figure>
+<p>Redis + Lua的其他应用请访问如下资源：</p>
+<p><a href="https://github.com/Dragonriver1990/lua_learn" target="_blank" rel="external">DraognRiver Github</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>支持原创技术分享，请打赏！</div>
+    <div id="QR" style="display: block;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="http://i1.piimg.com/567571/99a18a6db0c4395e.jpg" style="height: 180px;width:180px" alt="DragonRiver WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+        <div id="alipay" style="display: inline-block">
+          <img id="alipay_qr" src="http://i1.piimg.com/567571/cc12a180ea1298c6.jpg" style="height: 180px;width:180px" alt="DragonRiver Alipay"/>
+          <p>支付宝打赏</p>
+        </div>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        
+      
+
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/05/websocket/websocket/" rel="next" title="Websocket学习--协议学习">
+                <i class="fa fa-chevron-left"></i> Websocket学习--协议学习
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/30/other/oauth2/" rel="prev" title="Oauth2.0讲解及其在BDP中的应用">
+                Oauth2.0讲解及其在BDP中的应用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="DragonRiver" />
+          <p class="site-author-name" itemprop="name">DragonRiver</p>
+           
+              <p class="site-description motion-element" itemprop="description">喜欢一直奔跑着，不想停下脚步</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">22</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Dragonriver1990" target="_blank" title="Github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  Github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.facebook.com/DragonRiverF" target="_blank" title="Facebook">
+                  
+                    <i class="fa fa-fw fa-facebook"></i>
+                  
+                  Facebook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="799579893@qq.com" target="_blank" title="Email">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  Email
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://toutiao.io/" title="开发者头条" target="_blank">开发者头条</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.woshipm.com/" title="人人都是产品经理" target="_blank">人人都是产品经理</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.dongqiudi.com/" title="懂球帝" target="_blank">懂球帝</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://me.bdp.cn/home.html" title="BDP" target="_blank">BDP</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.zhihu.com/" title="知乎" target="_blank">知乎</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#学习背景"><span class="nav-number">1.</span> <span class="nav-text">学习背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-Lua介绍"><span class="nav-number">2.</span> <span class="nav-text">Redis + Lua介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基本概念及使用方法"><span class="nav-number">2.1.</span> <span class="nav-text">基本概念及使用方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis执行Lua脚本的过程"><span class="nav-number">2.2.</span> <span class="nav-text">Redis执行Lua脚本的过程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#创建Lua环境"><span class="nav-number">2.2.1.</span> <span class="nav-text">创建Lua环境</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Lua环境协作组件"><span class="nav-number">2.2.2.</span> <span class="nav-text">Lua环境协作组件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Eval命令原理"><span class="nav-number">2.2.3.</span> <span class="nav-text">Eval命令原理</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#数据流表示图"><span class="nav-number">2.2.4.</span> <span class="nav-text">数据流表示图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-Lua-应用"><span class="nav-number">3.</span> <span class="nav-text">Redis + Lua 应用</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+	  <div id="musicplay">
+        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=76899&auto=0&height=66"></iframe>
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DragonRiver</span>
+</div>
+<!---->
+<!--#<div class="powered-by">-->
+<!--#  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动-->
+<!--#</div>-->
+<!--#-->
+<!--#<div class="theme-info">-->
+<!--#  主题 --->
+<!--#  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">-->
+<!--#    NexT.Mist-->
+<!--#  </a>-->
+<!--#</div>-->
+<!--#-->
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+    
+    <script>
+      var cloudTieConfig = {
+        url: document.location.href, 
+        sourceId: "",
+        productKey: "8c782ccb056440bd9df97b87bdc54d00",
+        target: "cloud-tie-wrapper"
+      };
+    </script>
+    <script src="https://img1.ws.126.net/f2e/tie/yun/sdk/loader.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=5.1.0"></script>
+
+
+</body>
+</html>

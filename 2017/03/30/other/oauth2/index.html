@@ -1,0 +1,1050 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+<!--百度统计-->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?7d06d2f3d2e8c939151c6cebb201f87a";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+  <meta name="keywords" content="Oauth2.0,授权,BDP,跳转" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/head.jpeg?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="简单介绍 OAuth是一个关于授权的开放网络标准，目前最常用的的版本是OAuth2.0。目前的标准参考文档为RFC6749。  应用场景BDP的用户想在数据源界面添加一个支付宝（口碑、支付）或者云表格（伙伴云）的数据源，将支付宝或者伙伴云的数据同步到BDP，进行分析。   问题是只有得到用户的授权，BDP才能读取支付宝或者云表格的数据。传统方法是用户将自己的支付宝用户名和密码告诉BDP（这不是疯了">
+<meta name="keywords" content="Oauth2.0,授权,BDP,跳转">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Oauth2.0讲解及其在BDP中的应用">
+<meta property="og:url" content="https://dragonriver1990.github.io/2017/03/30/other/oauth2/index.html">
+<meta property="og:site_name" content="奔跑的江江">
+<meta property="og:description" content="简单介绍 OAuth是一个关于授权的开放网络标准，目前最常用的的版本是OAuth2.0。目前的标准参考文档为RFC6749。  应用场景BDP的用户想在数据源界面添加一个支付宝（口碑、支付）或者云表格（伙伴云）的数据源，将支付宝或者伙伴云的数据同步到BDP，进行分析。   问题是只有得到用户的授权，BDP才能读取支付宝或者云表格的数据。传统方法是用户将自己的支付宝用户名和密码告诉BDP（这不是疯了">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://i2.muimg.com/567571/4df993a27ea8a524.jpg">
+<meta property="og:image" content="http://i1.piimg.com/567571/76f32f4c1d0d2bc1.jpg">
+<meta property="og:image" content="http://i4.buimg.com/567571/6fc1c918e5716388.jpg">
+<meta property="og:image" content="http://i1.piimg.com/567571/920f7004e6b907b5.png">
+<meta property="og:image" content="http://i4.buimg.com/567571/679d2c973cfa847b.jpg">
+<meta property="og:image" content="http://i2.muimg.com/567571/c8ad9a8c45ae9a82.png">
+<meta property="og:updated_time" content="2017-09-28T06:38:17.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Oauth2.0讲解及其在BDP中的应用">
+<meta name="twitter:description" content="简单介绍 OAuth是一个关于授权的开放网络标准，目前最常用的的版本是OAuth2.0。目前的标准参考文档为RFC6749。  应用场景BDP的用户想在数据源界面添加一个支付宝（口碑、支付）或者云表格（伙伴云）的数据源，将支付宝或者伙伴云的数据同步到BDP，进行分析。   问题是只有得到用户的授权，BDP才能读取支付宝或者云表格的数据。传统方法是用户将自己的支付宝用户名和密码告诉BDP（这不是疯了">
+<meta name="twitter:image" content="http://i2.muimg.com/567571/4df993a27ea8a524.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dragonriver1990.github.io/2017/03/30/other/oauth2/"/>
+
+
+
+
+
+  <title> Oauth2.0讲解及其在BDP中的应用 | 奔跑的江江 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">奔跑的江江</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Come on!</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocapitalize="off" autocomplete="off" autocorrect="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://dragonriver1990.github.io/2017/03/30/other/oauth2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DragonRiver">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="奔跑的江江">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Oauth2.0讲解及其在BDP中的应用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-30T12:50:36+08:00">
+                2017-03-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/其他/" itemprop="url" rel="index">
+                    <span itemprop="name">其他</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a class="cloud-tie-join-count" href="/2017/03/30/other/oauth2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count join-count" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h3><blockquote>
+<p>OAuth是一个关于授权的开放网络标准，目前最常用的的版本是OAuth2.0。目前的标准参考文档为<a href="http://www.rfcreader.com/#rfc6749_line958" target="_blank" rel="external">RFC6749</a>。</p>
+</blockquote>
+<h3 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h3><p><a href="https://me.bdp.cn/home.html" target="_blank" rel="external">BDP</a>的用户想在数据源界面添加一个支付宝（口碑、支付）或者云表格（伙伴云）的数据源，将支付宝或者伙伴云的数据同步到BDP，进行分析。</p>
+<p><img src="http://i2.muimg.com/567571/4df993a27ea8a524.jpg" alt="img-w 150"></p>
+<p><img src="http://i1.piimg.com/567571/76f32f4c1d0d2bc1.jpg" alt="partner"></p>
+<p>问题是只有得到用户的授权，BDP才能读取支付宝或者云表格的数据。传统方法是用户将自己的支付宝用户名和密码告诉BDP（这不是疯了吗），然后BDP就可以读取用户的数据了。这样的做法有几个明显的缺点：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">BDP为了自动增量同步用户数据，需要保存用户名和密码，这样很不安全。</span></div><div class="line"><span class="keyword">BDP获得了用户在支付宝上所有资料的权力，用户没办法限制BDP获得授权的范围和有效期。</span></div><div class="line"><span class="keyword">用户只有修改密码，才能收回赋予BDP的权力。但是这样做，会使得其他所有获得用户授权的第三方应用程序全部失效。</span></div><div class="line"><span class="keyword">只要有一个第三方应用程序被破解，就会导致用户密码泄漏，以及所有被密码保护的数据泄漏。</span></div></pre></td></tr></table></figure>
+<h3 id="OAuth思路"><a href="#OAuth思路" class="headerlink" title="OAuth思路"></a>OAuth思路</h3><p>OAuth在”客户端”与”服务提供商”之间，设置了一个授权层（authorization layer）。”客户端”不能直接登录”服务提供商”，只能登录授权层，以此将用户与客户端区分开来。”客户端”登录授权层所用的令牌（token），与用户的密码不同。用户可以在登录的时候，指定授权层令牌的权限范围和有效期。”客户端”登录授权层以后，”服务提供商”根据令牌的权限范围和有效期，向”客户端”开放用户储存的资料。</p>
+<h3 id="OAuth涉及的几个概念"><a href="#OAuth涉及的几个概念" class="headerlink" title="OAuth涉及的几个概念"></a>OAuth涉及的几个概念</h3><p>1、第三方应用程序（Client）：这里就是客户端，即我们说的BDP。</p>
+<p>2、资源拥有者（Resource Owner）：这里就是用户.</p>
+<p>3、用户代理（User Agent）：用户代理，这里指的是浏览器。</p>
+<p>4、HTTP服务提供商，这里包括认证服务器和资源服务器</p>
+<p>​     a：<strong>Authorization server</strong>：认证服务器，即服务提供商专门用来处理认证的服务器</p>
+<p>​     b：<strong>Resource server</strong>：资源服务器，即服务提供商存放用户生成的资源的服务器。</p>
+<h3 id="OAuth运行流程"><a href="#OAuth运行流程" class="headerlink" title="OAuth运行流程"></a>OAuth运行流程</h3><p>根据RFC6749介绍，OAuth流程如下：</p>
+<p><img src="http://i4.buimg.com/567571/6fc1c918e5716388.jpg" alt="oauth flow"></p>
+<p>具体步骤如下所示：</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="number">1</span>、用户打开客户端以后，客户端要求用户给予授权。</div><div class="line"><span class="number">2</span>、用户同意给予客户端授权。</div><div class="line"><span class="number">3</span>、客户端使用上一步获得的授权，向认证服务器申请令牌。</div><div class="line"><span class="number">4</span>、认证服务器对客户端进行认证以后，确认无误，同意发放令牌。</div><div class="line"><span class="number">5</span>、客户端使用令牌，向资源服务器申请获取资源。</div><div class="line"><span class="number">6</span>、资源服务器确认令牌无误，同意向客户端开放资源。</div></pre></td></tr></table></figure>
+<h3 id="授权模式"><a href="#授权模式" class="headerlink" title="授权模式"></a>授权模式</h3><p>目前OAuth2.0有四种授权模式</p>
+<figure class="highlight fortran"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">授权码模式（authorization code）</div><div class="line">简化模式（<span class="keyword">implicit</span>）</div><div class="line">密码模式（resource owner password credentials）</div><div class="line">客户端模式（client credentials）</div></pre></td></tr></table></figure>
+<p>这里主要就是对授权码模式进行讲解</p>
+<h5 id="授权码模式"><a href="#授权码模式" class="headerlink" title="授权码模式"></a>授权码模式</h5><blockquote>
+<p>授权码模式（authorization code）是功能最完整、流程最严密的授权模式。它的特点就是通过客户端的后台服务器，与”服务提供商”的认证服务器进行互动。</p>
+</blockquote>
+<p><img src="http://i1.piimg.com/567571/920f7004e6b907b5.png" alt=""></p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">用户访问客户端，后者将前者导向认证服务器。</div><div class="line">用户选择是否给予客户端授权。</div><div class="line">假设用户给予授权，认证服务器将用户导向客户端事先指定的<span class="string">"重定向URI"</span>（redirection URI），同时附上一个授权码。</div><div class="line">客户端收到授权码，附上早先的<span class="string">"重定向URI"</span>，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见。</div><div class="line">认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access <span class="built_in">token</span>）和更新令牌（refresh <span class="built_in">token</span>）。</div></pre></td></tr></table></figure>
+<h3 id="OAuth2-0授权在BDP中的应用"><a href="#OAuth2-0授权在BDP中的应用" class="headerlink" title="OAuth2.0授权在BDP中的应用"></a>OAuth2.0授权在BDP中的应用</h3><blockquote>
+<p>在BDP中，OAuth2.0主要应用在两个方面：数据源同步和个人版引流</p>
+</blockquote>
+<h5 id="数据源同步"><a href="#数据源同步" class="headerlink" title="数据源同步"></a>数据源同步</h5><p><img src="http://i4.buimg.com/567571/679d2c973cfa847b.jpg" alt=""></p>
+<p>数据源同步的流程如下：</p>
+<p>1、客户授权创建数据源</p>
+<figure class="highlight pf"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">A1:客户在BDP数据源界面添加伙伴云，引导客户到授权界面</div><div class="line">A2:授权界面会向伙伴云授权服务请求授权页面，同时验证redirect_uri和client_id是否正确</div><div class="line">B1:提示用户输入用户名和密码授权</div><div class="line">B2:用户填写完信息向授权服务器发起认证请求</div><div class="line">C1:认证服务器授权通过，会返回一个<span class="number">302</span>,地址是注册的redirect_uri,同时附带code(授权码)和<span class="keyword">state</span>信息(辅助信息)</div><div class="line">C2、C3:访问redirect_uri带上code和<span class="keyword">state</span>信息(<span class="keyword">state</span>中包含user_id信息，用户websocket推送给具体的客户)</div><div class="line">D1、D2:BDP服务端通过Websocket服务将授权码推送给前端。</div><div class="line">E:用户在BDP创建数据源，数据源附带的信息包括(数据源名称、日期配置、授权码等)。</div></pre></td></tr></table></figure>
+<p>2、BDP每天增量同步数据</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">F1:根据授权码请求<span class="built_in">token</span>，如果<span class="built_in">token</span>存在则通过refresh_token刷新<span class="built_in">token</span></div><div class="line">F2:返回<span class="built_in">token</span>和refresh_token</div><div class="line">G:通过<span class="built_in">token</span>请求伙伴云的数据资源</div><div class="line"></div><div class="line">每天增量就重复上面的过程</div></pre></td></tr></table></figure>
+<h5 id="个人版引流（卧龙推广平台用户引流到BDP个人版）"><a href="#个人版引流（卧龙推广平台用户引流到BDP个人版）" class="headerlink" title="个人版引流（卧龙推广平台用户引流到BDP个人版）"></a>个人版引流（卧龙推广平台用户引流到BDP个人版）</h5><p><img src="http://i2.muimg.com/567571/c8ad9a8c45ae9a82.png" alt=""></p>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p><a href="http://www.rfcreader.com/#rfc6749_line958" target="_blank" rel="external">RFC6749</a></p>
+<p><a href="http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html" target="_blank" rel="external">理解OAuth2.0</a></p>
+<p><a href="https://flask-oauthlib.readthedocs.io/en/latest/index.html" target="_blank" rel="external">Flask Oauth Lib</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>支持原创技术分享，请打赏！</div>
+    <div id="QR" style="display: block;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="http://i1.piimg.com/567571/99a18a6db0c4395e.jpg" style="height: 180px;width:180px" alt="DragonRiver WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+        <div id="alipay" style="display: inline-block">
+          <img id="alipay_qr" src="http://i1.piimg.com/567571/cc12a180ea1298c6.jpg" style="height: 180px;width:180px" alt="DragonRiver Alipay"/>
+          <p>支付宝打赏</p>
+        </div>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        
+      
+
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/10/other/redis_lua/" rel="next" title="Redis应用之Lua脚本">
+                <i class="fa fa-chevron-left"></i> Redis应用之Lua脚本
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/02/python/python-singleton/" rel="prev" title="Python应用之单例模式">
+                Python应用之单例模式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.png"
+               alt="DragonRiver" />
+          <p class="site-author-name" itemprop="name">DragonRiver</p>
+           
+              <p class="site-description motion-element" itemprop="description">喜欢一直奔跑着，不想停下脚步</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">22</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Dragonriver1990" target="_blank" title="Github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  Github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.facebook.com/DragonRiverF" target="_blank" title="Facebook">
+                  
+                    <i class="fa fa-fw fa-facebook"></i>
+                  
+                  Facebook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="799579893@qq.com" target="_blank" title="Email">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  Email
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              友情链接
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://toutiao.io/" title="开发者头条" target="_blank">开发者头条</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.woshipm.com/" title="人人都是产品经理" target="_blank">人人都是产品经理</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.dongqiudi.com/" title="懂球帝" target="_blank">懂球帝</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://me.bdp.cn/home.html" title="BDP" target="_blank">BDP</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.zhihu.com/" title="知乎" target="_blank">知乎</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#简单介绍"><span class="nav-number">1.</span> <span class="nav-text">简单介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#应用场景"><span class="nav-number">2.</span> <span class="nav-text">应用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OAuth思路"><span class="nav-number">3.</span> <span class="nav-text">OAuth思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OAuth涉及的几个概念"><span class="nav-number">4.</span> <span class="nav-text">OAuth涉及的几个概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OAuth运行流程"><span class="nav-number">5.</span> <span class="nav-text">OAuth运行流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#授权模式"><span class="nav-number">6.</span> <span class="nav-text">授权模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#授权码模式"><span class="nav-number">6.0.1.</span> <span class="nav-text">授权码模式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OAuth2-0授权在BDP中的应用"><span class="nav-number">7.</span> <span class="nav-text">OAuth2.0授权在BDP中的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#数据源同步"><span class="nav-number">7.0.1.</span> <span class="nav-text">数据源同步</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#个人版引流（卧龙推广平台用户引流到BDP个人版）"><span class="nav-number">7.0.2.</span> <span class="nav-text">个人版引流（卧龙推广平台用户引流到BDP个人版）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文献"><span class="nav-number">8.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+	  <div id="musicplay">
+        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=76899&auto=0&height=66"></iframe>
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DragonRiver</span>
+</div>
+<!---->
+<!--#<div class="powered-by">-->
+<!--#  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动-->
+<!--#</div>-->
+<!--#-->
+<!--#<div class="theme-info">-->
+<!--#  主题 --->
+<!--#  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">-->
+<!--#    NexT.Mist-->
+<!--#  </a>-->
+<!--#</div>-->
+<!--#-->
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+    
+    <script>
+      var cloudTieConfig = {
+        url: document.location.href, 
+        sourceId: "",
+        productKey: "8c782ccb056440bd9df97b87bdc54d00",
+        target: "cloud-tie-wrapper"
+      };
+    </script>
+    <script src="https://img1.ws.126.net/f2e/tie/yun/sdk/loader.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length == 0) {
+      search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.popup').toggle();
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+      $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = $( "entry", xmlResponse ).map(function() {
+            return {
+              title: $( "title", this ).text(),
+              content: $("content",this).text(),
+              url: $( "url" , this).text()
+            };
+          }).get();
+          var $input = document.getElementById(search_id);
+          var $resultContent = document.getElementById(content_id);
+          $input.addEventListener('input', function(){
+            var matchcounts = 0;
+            var str='<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length > 1) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var content_index = [];
+                var data_title = data.title.trim().toLowerCase();
+                var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                var data_url = decodeURIComponent(data.url);
+                var index_title = -1;
+                var index_content = -1;
+                var first_occur = -1;
+                // only match artiles with not empty titles and contents
+                if(data_title != '') {
+                  keywords.forEach(function(keyword, i) {
+                    index_title = data_title.indexOf(keyword);
+                    index_content = data_content.indexOf(keyword);
+                    if( index_title >= 0 || index_content >= 0 ){
+                      isMatch = true;
+                      if (i == 0) {
+                        first_occur = index_content;
+                      }
+                    }
+
+                  });
+                }
+                // show search results
+                if (isMatch) {
+                  matchcounts += 1;
+                  str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                  var content = data.content.trim().replace(/<[^>]+>/g,"");
+                  if (first_occur >= 0) {
+                    // cut out 100 characters
+                    var start = first_occur - 20;
+                    var end = first_occur + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if(start == 0){
+                      end = 50;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    var match_content = content.substring(start, end);
+                    // highlight all keywords
+                    keywords.forEach(function(keyword){
+                      var regS = new RegExp(keyword, "gi");
+                      match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                    });
+
+                    str += "<p class=\"search-result\">" + match_content +"...</p>"
+                  }
+                  str += "</li>";
+                }
+              })};
+            str += "</ul>";
+            if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+            if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+            $resultContent.innerHTML = str;
+          });
+          proceedsearch();
+        }
+      });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=5.1.0"></script>
+
+
+</body>
+</html>
